@@ -6,10 +6,11 @@ func main() {
 
 	baseUrl := "https://i.imgur.com/"
 
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 25; i++ {
 		// Gera o codigo do imgur
-		code := ImgurCodeGenerator(6)
+		code := ImgurCodeGenerator(5)
 		// Coloca um .png pra garantir que o site vai abrir só a imagem caso existir
+		// Isso funciona mesmo se o original no site seja jpeg, e ele salva .png mesmo sendo jpeg e pelo visto funciona
 		imageName := code + ".png"
 		// Gera o url do imgur para a imagem
 		url := baseUrl + imageName
