@@ -14,9 +14,13 @@ func DownloadImage(filepath string, url string) (err error) {
 		"image/jpeg": true,
 	}
 
-	// acho que esse etag é pro 404 a7cb396d0db6af2e63870985cb086fa1
 	// Os HEAD do imgur tem um Etag de uma imagem que é invalida, mas mesmo assim é uma imagem.
-	unavailableETag := "d835884373f4d6c8f24742ceabe74946"
+	unavailableEtags := map[string]bool{
+		// Pras imagens que vem com o texto nela dizendo unavailable
+		"d835884373f4d6c8f24742ceabe74946": true,
+		// Pras páginas que carregam no imgur.com mas são na real um 404
+		"a7cb396d0db6af2e63870985cb086fa1": true,
+	}
 
 	// Pega o HTTP HEAD da página
 	head, err := http.Head(url)
@@ -24,24 +28,24 @@ func DownloadImage(filepath string, url string) (err error) {
 		return nil
 	}
 
-	// Testa primeiro se o header tem so campos necessarios, caso sim, utiliza eles
-	if _, ok := head.Header["Content-Type"]; !ok {
-		return nil
-	}
-	headType := head.Header["Content-Type"][0]
-	if _, ok := head.Header["Etag"]; !ok {
-		return nil
-	}
-	headEtag := head.Header["Etag"][0]
-	headEtag = headEtag[1 : len(headEtag)-1]
-
-	// Se o header não é de imagem, eu retorno nil e saio da função
-	if !validTypes[headType] {
-		return nil
+	// Testa se tem content type, se sim, confere se é valido, caso não, sai da função
+	if _, ok := head.Header["Content-Type"]; ok {
+		headType := head.Header["Content-Type"][0]
+		if !validTypes[headType] {
+			fmt.Printf("\tSkip: content %s\n", headType)
+			return nil
+		}
 	}
 
-	if headEtag == unavailableETag {
-		return nil
+	// Faz o mesmo pro Etag e checa contra os unavailables
+	if _, ok := head.Header["Etag"]; ok {
+		headEtag := head.Header["Etag"][0]
+		// A string vem como "abc", com as aspas mesmo, dai removo elas.
+		headEtag = headEtag[1 : len(headEtag)-1]
+		if unavailableEtags[headEtag] {
+			fmt.Printf("\tSkip: Etag unavailable %s\n", headEtag)
+			return nil
+		}
 	}
 
 	// Get the data
@@ -51,32 +55,24 @@ func DownloadImage(filepath string, url string) (err error) {
 	}
 	defer resp.Body.Close()
 
-	if _, ok := resp.Header["Content-Type"]; !ok {
-		return nil
-	}
-	respType := resp.Header["Content-Type"][0]
-
-	if _, ok := resp.Header["Etag"]; !ok {
-		return nil
-	}
-	respEtag := resp.Header["Etag"][0]
-	respEtag = respEtag[1 : len(respEtag)-1]
-
-	fmt.Println("----")
-	fmt.Println(url)
-	// fmt.Println(resp.Header)
-	fmt.Println(respEtag)
-	fmt.Println(unavailableETag)
-
-	// Confere mesmo assim se a resposta é uma imagem mesmo e não é aquele Etag
-	if !validTypes[respType] {
-		fmt.Println("HEAD request deu diferente que o HEAD do GET")
-		return nil
+	// Testa se tem content type, se sim, confere se é valido, caso não, sai da função
+	if _, ok := resp.Header["Content-Type"]; ok {
+		respType := resp.Header["Content-Type"][0]
+		if !validTypes[respType] {
+			fmt.Println("Content no HEAD diferente do Response")
+			return nil
+		}
 	}
 
-	if respEtag == unavailableETag {
-		fmt.Println("HEAD request deu diferente que o HEAD do GET")
-		return nil
+	// Faz o mesmo pro Etag e checa contra os unavailables
+	if _, ok := resp.Header["Etag"]; ok {
+		respEtag := resp.Header["Etag"][0]
+		// A string vem como "abc", com as aspas mesmo, dai removo elas.
+		respEtag = respEtag[1 : len(respEtag)-1]
+		if unavailableEtags[respEtag] {
+			fmt.Println("Etag no HEAD diferente do Response")
+			return nil
+		}
 	}
 
 	// Check server response
@@ -96,6 +92,8 @@ func DownloadImage(filepath string, url string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("\tSalvo.")
 
 	return nil
 }

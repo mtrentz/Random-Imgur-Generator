@@ -6,7 +6,7 @@ func main() {
 
 	baseUrl := "https://i.imgur.com/"
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 50; i++ {
 		// Gera o codigo do imgur
 		code := ImgurCodeGenerator(6)
 		// Coloca um .png pra garantir que o site vai abrir só a imagem caso existir
