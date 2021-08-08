@@ -64,15 +64,6 @@ func DownloadImage(filepath string, url string) (err error) {
 		return nil
 	}
 
-	// // Testa se tem content type, se sim, confere se é valido, caso não, sai da função
-	// if _, ok := head.Header["Content-Type"]; ok {
-	// 	headType := head.Header["Content-Type"][0]
-	// 	if !validTypes[headType] {
-	// 		fmt.Printf("\tSkip: content %s\n", headType)
-	// 		return nil
-	// 	}
-	// }
-
 	if !ValidContentType(head.Header) {
 		// Caso não seja valido, sai da função
 		return nil
@@ -83,17 +74,6 @@ func DownloadImage(filepath string, url string) (err error) {
 		return nil
 	}
 
-	// // Faz o mesmo pro Etag e checa contra os unavailables
-	// if _, ok := head.Header["Etag"]; ok {
-	// 	headEtag := head.Header["Etag"][0]
-	// 	// A string vem como "abc", com as aspas mesmo, dai removo elas.
-	// 	headEtag = headEtag[1 : len(headEtag)-1]
-	// 	if unavailableEtags[headEtag] {
-	// 		fmt.Printf("\tSkip: Etag unavailable %s\n", headEtag)
-	// 		return nil
-	// 	}
-	// }
-
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
@@ -101,30 +81,10 @@ func DownloadImage(filepath string, url string) (err error) {
 	}
 	defer resp.Body.Close()
 
-	// // Testa se tem content type, se sim, confere se é valido, caso não, sai da função
-	// if _, ok := resp.Header["Content-Type"]; ok {
-	// 	respType := resp.Header["Content-Type"][0]
-	// 	if !validTypes[respType] {
-	// 		fmt.Println("Content no HEAD diferente do Response")
-	// 		return nil
-	// 	}
-	// }
-
 	if !ValidContentType(resp.Header) {
 		// Caso não seja valido, sai da função
 		return nil
 	}
-
-	// // Faz o mesmo pro Etag e checa contra os unavailables
-	// if _, ok := resp.Header["Etag"]; ok {
-	// 	respEtag := resp.Header["Etag"][0]
-	// 	// A string vem como "abc", com as aspas mesmo, dai removo elas.
-	// 	respEtag = respEtag[1 : len(respEtag)-1]
-	// 	if unavailableEtags[respEtag] {
-	// 		fmt.Println("Etag no HEAD diferente do Response")
-	// 		return nil
-	// 	}
-	// }
 
 	if !ValidEtag(resp.Header) {
 		// Caso não seja valido, sai da função
