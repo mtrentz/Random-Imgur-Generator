@@ -55,7 +55,7 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 100
+	imgsWanted := 5
 	counter := 0
 	c := make(chan int)
 
