@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -28,7 +27,7 @@ func ValidContentType(header map[string][]string) (valid bool) {
 		contentType := header["Content-Type"][0]
 		// Confere se o type é valido como imagem
 		if !validTypes[contentType] {
-			fmt.Printf("\tSkip: content %s\n", contentType)
+			// fmt.Printf("\tSkip: content %s\n", contentType)
 			return false
 		} else {
 			return true
@@ -46,7 +45,7 @@ func ValidEtag(header map[string][]string) (valid bool) {
 		// A string vem como "abc", com as aspas mesmo, dai removo elas.
 		headEtag = headEtag[1 : len(headEtag)-1]
 		if unavailableEtags[headEtag] {
-			fmt.Printf("\tSkip: Etag unavailable %s\n", headEtag)
+			// fmt.Printf("\tSkip: Etag unavailable %s\n", headEtag)
 			return false
 		} else {
 			return true
@@ -56,60 +55,61 @@ func ValidEtag(header map[string][]string) (valid bool) {
 	}
 }
 
-func DownloadImage(filepath string, url string) (err error) {
+func DownloadImage(filepath string, url string) (finished bool, err error) {
 
 	// Pega o HTTP HEAD da página
 	head, err := http.Head(url)
 	if err != nil {
-		return nil
+		return false, nil
 	}
 
 	if !ValidContentType(head.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	if !ValidEtag(head.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	if !ValidContentType(resp.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	if !ValidEtag(resp.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
+		// TODO: Podia gerar um erro pra status code aqui
+		return false, nil
 	}
 
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer out.Close()
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	fmt.Println("\tSalvo.")
+	// fmt.Println("\tSalvo.")
 
-	return nil
+	return true, nil
 }
