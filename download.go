@@ -56,60 +56,60 @@ func ValidEtag(header map[string][]string) (valid bool) {
 	}
 }
 
-func DownloadImage(filepath string, url string) (err error) {
+func DownloadImage(filepath string, url string) (finished bool, err error) {
 
 	// Pega o HTTP HEAD da página
 	head, err := http.Head(url)
 	if err != nil {
-		return nil
+		return false, nil
 	}
 
 	if !ValidContentType(head.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	if !ValidEtag(head.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer resp.Body.Close()
 
 	if !ValidContentType(resp.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	if !ValidEtag(resp.Header) {
 		// Caso não seja valido, sai da função
-		return nil
+		return false, nil
 	}
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
+		return false, nil
 	}
 
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer out.Close()
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	fmt.Println("\tSalvo.")
 
-	return nil
+	return true, nil
 }

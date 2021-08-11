@@ -20,9 +20,11 @@ func init() {
 func main() {
 
 	baseUrl := "https://i.imgur.com/"
+	imgsWanted := 10
+	counter := 0
 
-	// Tenta N vezes gerar um url válido. Pode ser que nao consiga nenhum.
-	for i := 0; i < 1000; i++ {
+	// Tenta N vezes gerar um url válido. Para quando achar imgsWanted
+	for i := 0; i < 500; i++ {
 		// Gera o codigo do imgur, o numero é referete a quantidade de digitos random no fim do link
 		// links com 5 digitos random geralmente são imagens mais antigas. Com 6 já são mais novas.
 		// Porém, com 6 digitos, a grande maioria dos chutes serão 404.
@@ -38,6 +40,17 @@ func main() {
 
 		// Salva o arquivo caso seja mesmo uma img. Mesmo se for um jpeg vai salvar
 		filePath := imageDir + "/" + imageName
-		DownloadImage(filePath, url)
+		completed, err := DownloadImage(filePath, url)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if completed {
+			counter++
+		}
+
+		if counter >= imgsWanted {
+			break
+		}
 	}
 }
