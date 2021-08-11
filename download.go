@@ -28,7 +28,7 @@ func ValidContentType(header map[string][]string) (valid bool) {
 		contentType := header["Content-Type"][0]
 		// Confere se o type é valido como imagem
 		if !validTypes[contentType] {
-			fmt.Printf("\tSkip: content %s\n", contentType)
+			fmt.Printf("Skip: content %s\n", contentType)
 			return false
 		} else {
 			return true
@@ -46,7 +46,7 @@ func ValidEtag(header map[string][]string) (valid bool) {
 		// A string vem como "abc", com as aspas mesmo, dai removo elas.
 		headEtag = headEtag[1 : len(headEtag)-1]
 		if unavailableEtags[headEtag] {
-			fmt.Printf("\tSkip: Etag unavailable %s\n", headEtag)
+			fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
 			return false
 		} else {
 			return true
@@ -110,7 +110,7 @@ func DownloadImage(filepath string, url string) (finished bool, err error) {
 		return false, err
 	}
 
-	fmt.Println("\tSalvo.")
+	fmt.Println("Salvo.")
 
 	return true, nil
 }
