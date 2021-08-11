@@ -52,14 +52,16 @@ func makeRequest(codeLen int, c chan int) {
 }
 
 func main() {
+	// Tamanho do codigo aleatorio
+	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 10
+	imgsWanted := 100
 	counter := 0
 	c := make(chan int)
 
 	// Roda por n vezes,
-	for i := 0; i < 500; i++ {
-		go makeRequest(5, c)
+	for {
+		go makeRequest(codeLen, c)
 
 		counter += <-c
 
