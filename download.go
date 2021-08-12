@@ -114,3 +114,66 @@ func DownloadImage(filepath string, url string) (finished bool, err error) {
 
 	return true, nil
 }
+
+func FindWorkingUrl(codeLen int) (foundUrl string, err error) {
+	baseUrl := "https://i.imgur.com/"
+
+	for {
+		code := ImgurCodeGenerator(codeLen)
+
+		requestUrl := baseUrl + code + ".png"
+
+		// Pega o HTTP HEAD da página
+		head, err := http.Head(requestUrl)
+		if err != nil {
+			return "", nil
+		}
+
+		if ValidContentType(head.Header) {
+			if ValidEtag(head.Header) {
+				return requestUrl, nil
+			}
+		}
+	}
+}
+
+func GetImage(filepath string, url string) (success bool, err error) {
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if !ValidContentType(resp.Header) {
+		// Caso não seja valido, sai da função
+		return false, nil
+	}
+
+	if !ValidEtag(resp.Header) {
+		// Caso não seja valido, sai da função
+		return false, nil
+	}
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		// TODO: Podia gerar um erro pra status code aqui
+		return false, nil
+	}
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return false, err
+	}
+	defer out.Close()
+
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+
+}
