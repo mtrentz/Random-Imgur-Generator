@@ -25,7 +25,7 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 50
+	imgsWanted := 1000
 	counter := 0
 	urlChannel := make(chan string)
 	counterChannel := make(chan int)

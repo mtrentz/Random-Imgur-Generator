@@ -127,5 +127,6 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 	}
 
 	counterChan <- 1
+	fmt.Println("Salvo.")
 
 }
