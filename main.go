@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 )
 
 const imageDir string = "imgs"
@@ -15,6 +16,9 @@ func init() {
 			fmt.Println(err)
 		}
 	}
+
+	fmt.Println("OS:", runtime.GOOS)
+	fmt.Println("CPUs:", runtime.NumCPU())
 }
 
 func makeRequest(codeLen int, c chan int) {
@@ -55,7 +59,7 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 5
+	imgsWanted := 500
 	counter := 0
 	c := make(chan int)
 
