@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -56,66 +57,7 @@ func ValidEtag(header map[string][]string) (valid bool) {
 	}
 }
 
-func DownloadImage(filepath string, url string) (finished bool, err error) {
-
-	// Pega o HTTP HEAD da página
-	head, err := http.Head(url)
-	if err != nil {
-		return false, nil
-	}
-
-	if !ValidContentType(head.Header) {
-		// Caso não seja valido, sai da função
-		return false, nil
-	}
-
-	if !ValidEtag(head.Header) {
-		// Caso não seja valido, sai da função
-		return false, nil
-	}
-
-	// Get the data
-	resp, err := http.Get(url)
-	if err != nil {
-		return false, err
-	}
-	defer resp.Body.Close()
-
-	if !ValidContentType(resp.Header) {
-		// Caso não seja valido, sai da função
-		return false, nil
-	}
-
-	if !ValidEtag(resp.Header) {
-		// Caso não seja valido, sai da função
-		return false, nil
-	}
-
-	// Check server response
-	if resp.StatusCode != http.StatusOK {
-		// TODO: Podia gerar um erro pra status code aqui
-		return false, nil
-	}
-
-	// Create the file
-	out, err := os.Create(filepath)
-	if err != nil {
-		return false, err
-	}
-	defer out.Close()
-
-	// Writer the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return false, err
-	}
-
-	fmt.Println("Salvo.")
-
-	return true, nil
-}
-
-func FindWorkingUrl(codeLen int) (foundUrl string, err error) {
+func FindWorkingUrl(codeLen int, urlChan chan<- string) {
 	baseUrl := "https://i.imgur.com/"
 
 	for {
@@ -126,54 +68,64 @@ func FindWorkingUrl(codeLen int) (foundUrl string, err error) {
 		// Pega o HTTP HEAD da página
 		head, err := http.Head(requestUrl)
 		if err != nil {
-			return "", nil
+			return
 		}
 
 		if ValidContentType(head.Header) {
 			if ValidEtag(head.Header) {
-				return requestUrl, nil
+				urlChan <- requestUrl
 			}
 		}
 	}
 }
 
-func GetImage(filepath string, url string) (success bool, err error) {
-	// Get the data
-	resp, err := http.Get(url)
+func GetImage(imageDir string, imgUrl string, counterChan chan int) {
+
+	// Nome da imagem, por exemplo: www.imgur.com/aBc123.png -> aBc123.png
+	u, err := url.Parse(imgUrl)
 	if err != nil {
-		return false, err
+		panic(err)
+	}
+	imageName := u.Path[1:]
+	// Adiciona o nome no diretorio pra salvar a imagem
+	imagePath := imageDir + "/" + imageName
+
+	// Get the data
+	resp, err := http.Get(imgUrl)
+	if err != nil {
+		return
 	}
 	defer resp.Body.Close()
 
 	if !ValidContentType(resp.Header) {
 		// Caso não seja valido, sai da função
-		return false, nil
+		return
 	}
 
 	if !ValidEtag(resp.Header) {
 		// Caso não seja valido, sai da função
-		return false, nil
+		return
 	}
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
 		// TODO: Podia gerar um erro pra status code aqui
-		return false, nil
+		return
 	}
 
 	// Create the file
-	out, err := os.Create(filepath)
+	out, err := os.Create(imagePath)
 	if err != nil {
-		return false, err
+		return
 	}
 	defer out.Close()
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return false, err
+		return
 	}
 
-	return true, nil
+	counterChan <- 1
 
 }
