@@ -68,6 +68,7 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string) {
 		// Pega o HTTP HEAD da página
 		head, err := http.Head(requestUrl)
 		if err != nil {
+			fmt.Println("Erro no request do HEAD", err)
 			return
 		}
 
@@ -84,7 +85,7 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 	// Nome da imagem, por exemplo: www.imgur.com/aBc123.png -> aBc123.png
 	u, err := url.Parse(imgUrl)
 	if err != nil {
-		panic(err)
+		fmt.Println("Erro ao parsear a url", err)
 	}
 	imageName := u.Path[1:]
 	// Adiciona o nome no diretorio pra salvar a imagem
@@ -93,6 +94,7 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 	// Get the data
 	resp, err := http.Get(imgUrl)
 	if err != nil {
+		fmt.Println("Erro no request da imagem", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -116,6 +118,7 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 	// Create the file
 	out, err := os.Create(imagePath)
 	if err != nil {
+		fmt.Println("Erro ao criar arquivo", err)
 		return
 	}
 	defer out.Close()
@@ -123,6 +126,7 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
+		fmt.Println("Erro ao salvar arquivo", err)
 		return
 	}
 
