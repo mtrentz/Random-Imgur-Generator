@@ -29,7 +29,7 @@ func main() {
 	counter := 0
 	urlChannel := make(chan string)
 
-	for i := 0; i <= 500; i++ {
+	for i := 0; i <= 20; i++ {
 		go FindWorkingUrl(codeLen, urlChannel)
 	}
 
