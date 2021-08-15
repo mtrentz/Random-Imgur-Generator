@@ -25,13 +25,13 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 1000
+	imgsWanted := 10000
 	counter := 0
 	urlChannel := make(chan string)
 	quitChannel := make(chan bool)
 
 	// Numero de goroutines no background
-	for i := 0; i <= 10; i++ {
+	for i := 0; i <= 25; i++ {
 		go FindWorkingUrl(codeLen, urlChannel, quitChannel)
 	}
 
