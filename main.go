@@ -44,7 +44,7 @@ func main() {
 		if counter >= imgsWanted {
 			// Close channel and stop all goroutines
 			close(quitChannel)
-			fmt.Println("Salvo", imgsWanted, "imagens.")
+			fmt.Println("Saved", imgsWanted, "images.")
 			// Has to break out of loop, else code will be stuck waiting to read from urlChannel
 			break
 		}
