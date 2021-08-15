@@ -22,19 +22,25 @@ func init() {
 }
 
 func main() {
+	// Amount of images to download
+	imgsWanted := 10000
+	// Amount of goroutines
+	// It can be way higher than CPU cores
+	// But sending too many requests will make your IP get locked by imgur
+	numWorkers := 10
+
 	// Size of imgur code, for exemple i.imgur.com/x123xD -> 6 random characters
 	// Codes with 5 characters are older images uploaded to imgur.
 	// Codes with 6 are usually newer, but its harder to find working urls
 	codeLen := 6
-	// Amount of images to download
-	imgsWanted := 10000
+
 	counter := 0
 	urlChannel := make(chan string)
 	quitChannel := make(chan bool)
 
 	// Number of goroutines running in the background
 	// Its ok to add more than num of CPU cores since most of time is spent waiting for http requests
-	for i := 0; i <= 10; i++ {
+	for i := 0; i <= numWorkers; i++ {
 		go FindWorkingUrl(codeLen, urlChannel, quitChannel)
 	}
 
