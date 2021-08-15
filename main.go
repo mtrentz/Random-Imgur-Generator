@@ -25,19 +25,25 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 50
+	imgsWanted := 1000
 	counter := 0
 	urlChannel := make(chan string)
+	quitChannel := make(chan bool)
 
-	for i := 0; i <= 20; i++ {
-		go FindWorkingUrl(codeLen, urlChannel)
+	// Numero de goroutines no background
+	for i := 0; i <= 10; i++ {
+		go FindWorkingUrl(codeLen, urlChannel, quitChannel)
 	}
 
 	for val := range urlChannel {
 		GetImage(imageDir, val)
 		counter++
 		if counter >= imgsWanted {
-			os.Exit(3)
+			// Fecha o canal que faz parar as goroutines
+			close(quitChannel)
+			fmt.Println("Salvo", imgsWanted, "imagens.")
+			break
 		}
 	}
+
 }

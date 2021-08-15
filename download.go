@@ -57,24 +57,29 @@ func ValidEtag(header map[string][]string) (valid bool) {
 	}
 }
 
-func FindWorkingUrl(codeLen int, urlChan chan<- string) {
-	baseUrl := "https://i.imgur.com/"
+func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool) {
+	select {
+	case <-quitChannel:
+		return
+	default:
+		baseUrl := "https://i.imgur.com/"
 
-	for {
-		code := ImgurCodeGenerator(codeLen)
+		for {
+			code := ImgurCodeGenerator(codeLen)
 
-		requestUrl := baseUrl + code + ".png"
+			requestUrl := baseUrl + code + ".png"
 
-		// Pega o HTTP HEAD da página
-		head, err := http.Head(requestUrl)
-		if err != nil {
-			fmt.Println("Erro no request do HEAD", err)
-			continue
-		}
+			// Pega o HTTP HEAD da página
+			head, err := http.Head(requestUrl)
+			if err != nil {
+				fmt.Println("Erro no request do HEAD", err)
+				continue
+			}
 
-		if ValidContentType(head.Header) {
-			if ValidEtag(head.Header) {
-				urlChan <- requestUrl
+			if ValidContentType(head.Header) {
+				if ValidEtag(head.Header) {
+					urlChan <- requestUrl
+				}
 			}
 		}
 	}
