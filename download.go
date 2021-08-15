@@ -8,26 +8,26 @@ import (
 	"os"
 )
 
-// No HEADER da pra checar pelo tipo do conteudo
+// Valid types of imgur files.
 var validTypes = map[string]bool{
 	"image/png":  true,
 	"image/jpeg": true,
 }
 
-// Os HEAD do imgur tem um Etag de uma imagem que é invalida, mas mesmo assim é uma imagem.
+// Some imgur links come with an etag that identifies the usual type of unavailable pages
 var unavailableEtags = map[string]bool{
-	// Pras imagens que vem com o texto nela dizendo unavailable
+	// Some images were removed from imgur, if you try to download them, you'll get a .png saying the img was removed
 	"d835884373f4d6c8f24742ceabe74946": true,
-	// Pras páginas que carregam no imgur.com mas são na real um 404
+	// 404 on imgurs are not actually 404. It comes with a 200 status. This etag represents true 404, without images found on the url
 	"a7cb396d0db6af2e63870985cb086fa1": true,
 }
 
 func ValidContentType(header map[string][]string) (valid bool) {
-	// Confere se tem o Content-Type no header
+	// Check if the headed actually has a content-type field
 	if _, ok := header["Content-Type"]; ok {
-		// Caso sim, pega o valor do content type
+		// If so, get the value
 		contentType := header["Content-Type"][0]
-		// Confere se o type é valido como imagem
+		// Check if type is actually an image
 		if !validTypes[contentType] {
 			fmt.Printf("Skip: content %s\n", contentType)
 			return false
@@ -35,16 +35,16 @@ func ValidContentType(header map[string][]string) (valid bool) {
 			return true
 		}
 	} else {
-		// Caso não tenha o content-type no header a imagem ainda assim pode ser válida
+		// Usually, headers without content-type are STILL valid images.
 		return true
 	}
 }
 
 func ValidEtag(header map[string][]string) (valid bool) {
-	// Faz o mesmo pro Etag e checa contra os unavailables
+	// Do a very similar check for the etags.
 	if _, ok := header["Etag"]; ok {
 		headEtag := header["Etag"][0]
-		// A string vem como "abc", com as aspas mesmo, dai removo elas.
+		// Remove doublequotes from the string
 		headEtag = headEtag[1 : len(headEtag)-1]
 		if unavailableEtags[headEtag] {
 			fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
@@ -58,6 +58,8 @@ func ValidEtag(header map[string][]string) (valid bool) {
 }
 
 func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool) {
+	// This function goes into an infinite loop, that will only break when quitChannel is closed by the sender
+	// It will test for valid imgur urls containing either a png or jpeg. When found, send the valid url via the url channel.
 	select {
 	case <-quitChannel:
 		return
@@ -69,7 +71,7 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool)
 
 			requestUrl := baseUrl + code + ".png"
 
-			// Pega o HTTP HEAD da página
+			// Request only the page header
 			head, err := http.Head(requestUrl)
 			if err != nil {
 				fmt.Println("Erro no request do HEAD", err)
@@ -86,14 +88,16 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool)
 }
 
 func GetImage(imageDir string, imgUrl string) {
+	// Starting from a valid imgur url, containing an image
+	// this function will download that image and save to a directory
 
-	// Nome da imagem, por exemplo: www.imgur.com/aBc123.png -> aBc123.png
+	// Image name, for example: www.imgur.com/aBc123.png -> aBc123.png
 	u, err := url.Parse(imgUrl)
 	if err != nil {
 		fmt.Println("Erro ao parsear a url", err)
 	}
 	imageName := u.Path[1:]
-	// Adiciona o nome no diretorio pra salvar a imagem
+	// Add the image name to the final image path
 	imagePath := imageDir + "/" + imageName
 
 	// Get the data
@@ -104,26 +108,28 @@ func GetImage(imageDir string, imgUrl string) {
 	}
 	defer resp.Body.Close()
 
+	// Here tests for valid content type of the header again, just in case something went wrong
+	// on the header-only request.
 	if !ValidContentType(resp.Header) {
-		// Caso não seja valido, sai da função
+		// If not valid, gives up on downloading
 		return
 	}
 
 	if !ValidEtag(resp.Header) {
-		// Caso não seja valido, sai da função
+		// If not valid, gives up on downloading
 		return
 	}
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		// TODO: Podia gerar um erro pra status code aqui
+		// If not valid, gives up on downloading
 		return
 	}
 
 	// Create the file
 	out, err := os.Create(imagePath)
 	if err != nil {
-		fmt.Println("Erro ao criar arquivo", err)
+		fmt.Println("Failed to create file: ", err)
 		return
 	}
 	defer out.Close()
@@ -131,9 +137,9 @@ func GetImage(imageDir string, imgUrl string) {
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		fmt.Println("Erro ao salvar arquivo", err)
+		fmt.Println("Error trying to write file", err)
 		return
 	}
-	fmt.Println("Salvo.")
+	fmt.Println("Saved.")
 
 }

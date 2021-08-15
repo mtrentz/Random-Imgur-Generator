@@ -20,7 +20,7 @@ func RandStringRunes(n int) string {
 }
 
 func ImgurCodeGenerator(n int) string {
-	// n: numero de caracteres do codigo pro link da imagem no imgur
+	// n: number of chars on the imgur link code.
 	code := RandStringRunes(n)
 	return code
 }

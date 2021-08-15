@@ -9,7 +9,7 @@ import (
 const imageDir string = "imgs"
 
 func init() {
-	// Caso não exista, cria a página onde vou guardar as imgs
+	// Case not exsits, create folder to store images
 	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
 		err := os.Mkdir(imageDir, 0700)
 		if err != nil {
@@ -22,16 +22,19 @@ func init() {
 }
 
 func main() {
-	// Tamanho do codigo aleatorio
+	// Size of imgur code, for exemple i.imgur.com/x123xD -> 6 random characters
+	// Codes with 5 characters are older images uploaded to imgur.
+	// Codes with 6 are usually newer, but its harder to find working urls
 	codeLen := 6
-	// Quantidade de imagens que quero baixar
+	// Amount of images to download
 	imgsWanted := 10000
 	counter := 0
 	urlChannel := make(chan string)
 	quitChannel := make(chan bool)
 
-	// Numero de goroutines no background
-	for i := 0; i <= 25; i++ {
+	// Number of goroutines running in the background
+	// Its ok to add more than num of CPU cores since most of time is spent waiting for http requests
+	for i := 0; i <= 10; i++ {
 		go FindWorkingUrl(codeLen, urlChannel, quitChannel)
 	}
 
@@ -39,9 +42,10 @@ func main() {
 		GetImage(imageDir, val)
 		counter++
 		if counter >= imgsWanted {
-			// Fecha o canal que faz parar as goroutines
+			// Close channel and stop all goroutines
 			close(quitChannel)
 			fmt.Println("Salvo", imgsWanted, "imagens.")
+			// Has to break out of loop, else code will be stuck waiting to read from urlChannel
 			break
 		}
 	}
