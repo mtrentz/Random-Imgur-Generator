@@ -34,4 +34,4 @@ can all be changed within the main function in the main.go file.
 Since the urls are randomly generated, there **WILL** be a good amount of NSFW images.
 
 Running the program with a large amount of workers is a very good way of getting your IP blocked by imgur.
-So don't run with many requests for an extended amount of time.
+So don't make too many requests per second for an extended amount of time.
