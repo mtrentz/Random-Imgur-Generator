@@ -25,19 +25,19 @@ func main() {
 	// Tamanho do codigo aleatorio
 	codeLen := 6
 	// Quantidade de imagens que quero baixar
-	imgsWanted := 5000
+	imgsWanted := 50
 	counter := 0
 	urlChannel := make(chan string)
-	counterChannel := make(chan int)
 
-	// Roda por n vezes,
-	for {
+	for i := 0; i <= 500; i++ {
 		go FindWorkingUrl(codeLen, urlChannel)
-		go GetImage(imageDir, <-urlChannel, counterChannel)
-		counter += <-counterChannel
+	}
 
+	for val := range urlChannel {
+		GetImage(imageDir, val)
+		counter++
 		if counter >= imgsWanted {
-			break
+			os.Exit(3)
 		}
 	}
 }

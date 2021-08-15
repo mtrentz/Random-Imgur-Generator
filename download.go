@@ -69,7 +69,7 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string) {
 		head, err := http.Head(requestUrl)
 		if err != nil {
 			fmt.Println("Erro no request do HEAD", err)
-			return
+			continue
 		}
 
 		if ValidContentType(head.Header) {
@@ -80,7 +80,7 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string) {
 	}
 }
 
-func GetImage(imageDir string, imgUrl string, counterChan chan int) {
+func GetImage(imageDir string, imgUrl string) {
 
 	// Nome da imagem, por exemplo: www.imgur.com/aBc123.png -> aBc123.png
 	u, err := url.Parse(imgUrl)
@@ -129,8 +129,6 @@ func GetImage(imageDir string, imgUrl string, counterChan chan int) {
 		fmt.Println("Erro ao salvar arquivo", err)
 		return
 	}
-
-	counterChan <- 1
 	fmt.Println("Salvo.")
 
 }
