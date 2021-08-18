@@ -10,7 +10,9 @@ https://i.imgur.com/2TbCIb.png
 
 The image identifier can have 5, 6 or 7 characters. The best way of finding valid urls seems to be by trial and error.
 
-This code will try to generate 6 digits identifiers, check if the url contains a valid image and, if so, will download it.
+By default this code will try to generate 6 digits identifiers, check if the url contains a valid image and, if so, will download it.
+
+Trying to find valid 7 digits identifiers is way harder and it will take quite a while to download a good amount of images. In the other hand, 5 digit identifiers are very easy to find, but will be mostly pretty old images.
 
 ## Requirements
 There are no requirements.
