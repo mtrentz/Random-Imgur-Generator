@@ -75,7 +75,7 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool)
 			// Request only the page header
 			head, err := http.Head(requestUrl)
 			if err != nil {
-				fmt.Println("Erro no request do HEAD", err)
+				fmt.Println("Error requesting the HEAD", err)
 				continue
 			}
 
@@ -115,7 +115,7 @@ func GetImage(imageDir string, imgUrl string) {
 	// Get the data
 	resp, err := http.Get(imgUrl)
 	if err != nil {
-		fmt.Println("Erro no request da imagem", err)
+		fmt.Println("Error requesting the image", err)
 		return
 	}
 	defer resp.Body.Close()
@@ -141,7 +141,7 @@ func GetImage(imageDir string, imgUrl string) {
 	// Getting the image name, for example: www.imgur.com/aBc123.png -> aBc123.png
 	u, err := url.Parse(imgUrl)
 	if err != nil {
-		fmt.Println("Erro ao parsear a url", err)
+		fmt.Println("Failed to parse URL", err)
 	}
 	imageName := u.Path[1:]
 
