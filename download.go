@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 // Valid types of imgur files.
@@ -87,18 +88,29 @@ func FindWorkingUrl(codeLen int, urlChan chan<- string, quitChannel <-chan bool)
 	}
 }
 
+func GetContentType(header map[string][]string) (contentType string) {
+	// The point of this function is to get the content type (jpeg, png)
+	// so the file can be saved with proper extension (abc.jpeg).
+	// If it does not find a content type (sometimes its missing on header)
+	// it will default to a string 'png'.
+
+	// Check if header exists
+	if _, ok := header["Content-Type"]; ok {
+		// If so, get the value
+		contentType := header["Content-Type"][0]
+		// Content Types are strings like "image/jpeg" or "image/png". So i'll get only the second part
+		imageContentType := strings.Split(contentType, "/")[1]
+		// Return the content type
+		return imageContentType
+	} else {
+		// It shouldn't get to here, but if it does, defaults to png
+		return "png"
+	}
+}
+
 func GetImage(imageDir string, imgUrl string) {
 	// Starting from a valid imgur url, containing an image
 	// this function will download that image and save to a directory
-
-	// Image name, for example: www.imgur.com/aBc123.png -> aBc123.png
-	u, err := url.Parse(imgUrl)
-	if err != nil {
-		fmt.Println("Erro ao parsear a url", err)
-	}
-	imageName := u.Path[1:]
-	// Add the image name to the final image path
-	imagePath := imageDir + "/" + imageName
 
 	// Get the data
 	resp, err := http.Get(imgUrl)
@@ -125,6 +137,25 @@ func GetImage(imageDir string, imgUrl string) {
 		// If not valid, gives up on downloading
 		return
 	}
+
+	// Getting the image name, for example: www.imgur.com/aBc123.png -> aBc123.png
+	u, err := url.Parse(imgUrl)
+	if err != nil {
+		fmt.Println("Erro ao parsear a url", err)
+	}
+	imageName := u.Path[1:]
+
+	// Fixing the filename. By my default choice all images are with .png extension, since it helps when requesting images from imgur
+	// because when imgur links are like i.imgur.com/abc.png the return will be a webpage with only the image in it.
+	// Links like i.imgur.com/abc would return a page with the rest of the imgur website interface.
+	// Some images are not png though, and now I will fix the content type (getting the correct one from the header)
+	// to save the file with the proper extension.
+	imageExtension := GetContentType(resp.Header)
+	imageNameNoExtension := strings.Split(imageName, ".")[0]
+	newImageName := imageNameNoExtension + "." + imageExtension
+
+	// Add the image name to the final image path
+	imagePath := imageDir + "/" + newImageName
 
 	// Create the file
 	out, err := os.Create(imagePath)
