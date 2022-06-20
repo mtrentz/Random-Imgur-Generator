@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 // Valid types of imgur files.
@@ -30,7 +31,7 @@ func ValidContentType(header map[string][]string) (valid bool) {
 		contentType := header["Content-Type"][0]
 		// Check if type is actually an image
 		if !validTypes[contentType] {
-			fmt.Printf("Skip: content %s\n", contentType)
+			// fmt.Printf("Skip: content %s\n", contentType)
 			return false
 		} else {
 			return true
@@ -48,7 +49,7 @@ func ValidEtag(header map[string][]string) (valid bool) {
 		// Remove doublequotes from the string
 		headEtag = headEtag[1 : len(headEtag)-1]
 		if unavailableEtags[headEtag] {
-			fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
+			// fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
 			return false
 		} else {
 			return true
@@ -108,6 +109,22 @@ func GetContentType(header map[string][]string) (contentType string) {
 	}
 }
 
+func getDateString() string {
+	// This function returns a string with the current date and time.
+	// Which is gonna be used for the file path.
+	return time.Now().Format("2006-01-02")
+}
+
+func guaranteeDirExists(dir string) {
+	// Case not exsits, create folder to store images
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0700)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
 func GetImage(imageDir string, imgUrl string) {
 	// Starting from a valid imgur url, containing an image
 	// this function will download that image and save to a directory
@@ -155,7 +172,10 @@ func GetImage(imageDir string, imgUrl string) {
 	newImageName := imageNameNoExtension + "." + imageExtension
 
 	// Add the image name to the final image path
-	imagePath := imageDir + "/" + newImageName
+	// imagePath := imageDir + "/" + newImageName
+	folderDir := imageDir + "/" + getDateString()
+	guaranteeDirExists(folderDir)
+	imagePath := folderDir + "/" + newImageName
 
 	// Create the file
 	out, err := os.Create(imagePath)

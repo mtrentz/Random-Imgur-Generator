@@ -2,21 +2,12 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 )
 
 const imageDir string = "imgs"
 
 func init() {
-	// Case not exsits, create folder to store images
-	if _, err := os.Stat(imageDir); os.IsNotExist(err) {
-		err := os.Mkdir(imageDir, 0700)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-
 	fmt.Println("OS:", runtime.GOOS)
 	fmt.Println("CPUs:", runtime.NumCPU())
 }
@@ -33,7 +24,7 @@ func main() {
 	// Codes with 5 characters are older images uploaded to imgur.
 	// Codes with 6 are usually newer, but its harder to find working urls
 	// Codes with 7 are pretty new, and it can take up to minutes trying to find a working url.
-	codeLen := 6
+	codeLen := 7
 
 	counter := 0
 	urlChannel := make(chan string)
@@ -48,6 +39,7 @@ func main() {
 	for val := range urlChannel {
 		GetImage(imageDir, val)
 		counter++
+		fmt.Printf("Progress: %d/%d\n", counter, imgsWanted)
 		if counter >= imgsWanted {
 			// Close channel and stop all goroutines
 			close(quitChannel)
