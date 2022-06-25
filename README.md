@@ -14,9 +14,6 @@ By default this code will try to generate 6 digits identifiers, check if the url
 
 Trying to find valid 7 digits identifiers is way harder and it will take quite a while to download a good amount of images. In the other hand, 5 digit identifiers are very easy to find, but will be mostly pretty old images.
 
-## Requirements
-There are no requirements.
-
 ## Getting started
 Running it with
 ```
