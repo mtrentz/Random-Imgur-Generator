@@ -31,7 +31,7 @@ func ValidContentType(header map[string][]string) (valid bool) {
 		contentType := header["Content-Type"][0]
 		// Check if type is actually an image
 		if !validTypes[contentType] {
-			// fmt.Printf("Skip: content %s\n", contentType)
+			//fmt.Printf("Skip: content %s\n", contentType)
 			return false
 		} else {
 			return true
@@ -49,7 +49,7 @@ func ValidEtag(header map[string][]string) (valid bool) {
 		// Remove doublequotes from the string
 		headEtag = headEtag[1 : len(headEtag)-1]
 		if unavailableEtags[headEtag] {
-			// fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
+			//fmt.Printf("Skip: Etag unavailable %s\n", headEtag)
 			return false
 		} else {
 			return true
